@@ -16,14 +16,14 @@ public class Pessoa {
         this.id = proxId;
         proxId++;
         this.estado = estado;
-        this.tempoRecuperacao = (int) random(3000, 6000);
+        this.tempoRecuperacao = (int) random(1500, 3000);
         this.tempoAcao = (int) random(30, 180);
     }
 }
 
 static int proxId = 0;
-int tamanho = 24;
-int tamanhoCelula = 48;
+int tamanho = 16;
+int tamanhoCelula = 50;
 float chanceContagio = 0.5;
 Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
 
@@ -53,13 +53,11 @@ public void draw() {
                 PVector posicaoReal = new PVector(i * tamanhoCelula + 2, j * tamanhoCelula + 2);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
                 rect(pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 2, tamanhoCelula - 2, tamanhoCelula / 3);
-                textAlign(RIGHT, BOTTOM);
+                textAlign(CENTER, CENTER);
                 fill(255);
-                text(""+pessoas[i][j].id, pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 4, tamanhoCelula - 4);
+                textSize(tamanhoCelula * 0.4);
+                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 4, tamanhoCelula - 4);
             }
-            textAlign(LEFT, TOP);
-            fill(255);
-            text(i + ", " + j, i * tamanhoCelula, j * tamanhoCelula);
         }
     }
 
@@ -77,44 +75,57 @@ public void desenhaFundo() {
 }
 
 public void desenhaPlacar() {
-    int[] todos = new int[0];
+    textSize(20);
+    Pessoa[] todos = new Pessoa[0];
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++)
-            if(pessoas[i][j] != null) todos = append(todos, pessoas[i][j].pessoasInfectadas);
+            if(pessoas[i][j] != null) todos = (Pessoa[])append(todos, pessoas[i][j]);
     if(todos.length == 0) return;
 
     int nTop;
     nTop = min(todos.length, 5);
-    PVector tamanhoPlacar = new PVector(120, 24 * nTop);
+    PVector tamanhoPlacar = new PVector(240, 24 + 32 * nTop);
     todos = mergeSort(todos);
     
-    int[] top5 = new int[5];
+    Pessoa[] top5 = new Pessoa[5];
     for(int i = 0; i < 5; i++) {
         if(todos.length - i - 1 >= 0) top5[i] = todos[todos.length - i - 1];
     }
 
-    fill(15, 34, 42, 180);
+    fill(15, 34, 42, 220);
+    stroke(255);
     rect(4, 4, tamanhoPlacar.x, tamanhoPlacar.y, 8);
+    noStroke();
     fill(255);
+    textAlign(LEFT, CENTER);
+    text("ID", 8, 8, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+    textAlign(RIGHT, CENTER);
+    text("Pessoas Infectadas", 8, 8, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
     for(int i = 0; i < nTop; i++) {
-        textAlign(LEFT, TOP);
-        text(nf(top5[i]), 8, 8 + i * 24);
+        textAlign(LEFT, CENTER);
+        text(str(top5[i].id), 8, 32 + i * tamanhoPlacar.y / (nTop + 1) - 4, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+        textAlign(RIGHT, CENTER);
+        text(str(top5[i].pessoasInfectadas), 8, 32 + i * tamanhoPlacar.y / (nTop + 1) - 4, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
     }
 }
 
-public int[] mergeSort(int[] array) {
+public Pessoa[] mergeSort(Pessoa[] array) {
   if (array.length <= 1) return array;
 
   int meio = array.length / 2;
 
-  int[] subArray1 = mergeSort(subset(array, 0, meio));
-  int[] subArray2 = mergeSort(subset(array, meio));
+  Pessoa[] subArray1 = mergeSort((Pessoa[])subset(array, 0, meio));
+  Pessoa[] subArray2 = mergeSort((Pessoa[])subset(array, meio));
 
-  int[] arrayOrdenado = new int[array.length];
+  Pessoa[] arrayOrdenado = new Pessoa[array.length];
   int i = 0, j = 0, k = 0;
 
   while (i < subArray1.length && j < subArray2.length) {
-    arrayOrdenado[k++] = (subArray1[i] <= subArray2[j]) ? subArray1[i++] : subArray2[j++];
+    if (subArray1[i].pessoasInfectadas <= subArray2[j].pessoasInfectadas) {
+      arrayOrdenado[k++] = subArray1[i++];
+    } else {
+      arrayOrdenado[k++] = subArray2[j++];
+    }
   }
 
   while (i < subArray1.length) arrayOrdenado[k++] = subArray1[i++];
@@ -148,7 +159,7 @@ public void simular() {
                 ArrayList<PVector> adjacentesOcupados = new ArrayList<PVector>();
                 for(int x = -1; x <= 1; x++) {
                     for(int y = -1; y <= 1; y++) {
-                        if(x != 0 && y != 0 && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
+                        if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
                             if(pessoasNovo[i + x][j + y] == null)
                                 adjacentesLivres.add(new PVector(i + x, j + y));
                             else
@@ -156,23 +167,21 @@ public void simular() {
                     }
                 }
 
-                int x = i;
-                int y = j;
-                if(adjacentesLivres.size() > 0) {
-                    int index = (int)random(adjacentesLivres.size());
-                    x = (int)adjacentesLivres.get(index).x;
-                    y = (int)adjacentesLivres.get(index).y;
-                    pessoasNovo[x][y] = pessoas[i][j];
-                    pessoasNovo[i][j] = null;
-                }
-
-                if(pessoasNovo[x][y].estado == Estado.INFECTADO && adjacentesOcupados.size() > 0) {
+                if(pessoasNovo[i][j].estado == Estado.INFECTADO && adjacentesOcupados.size() > 0) {
                     for(PVector posicao : adjacentesOcupados) {
                         if(random(1) < chanceContagio && pessoasNovo[(int)posicao.x][(int)posicao.y].estado == Estado.SUSCETIVEL) {
-                            pessoasNovo[x][y].pessoasInfectadas++;
+                            pessoasNovo[i][j].pessoasInfectadas++;
                             pessoasNovo[(int)posicao.x][(int)posicao.y].estado = Estado.INFECTADO;
                         }
                     }
+                }
+
+                if(adjacentesLivres.size() > 0) {
+                    int index = (int)random(adjacentesLivres.size());
+                    int x = (int)adjacentesLivres.get(index).x;
+                    int y = (int)adjacentesLivres.get(index).y;
+                    pessoasNovo[x][y] = pessoas[i][j];
+                    pessoasNovo[i][j] = null;
                 }
             }
         }
@@ -199,7 +208,4 @@ public void mouseReleased() {
             if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
         }
     }
-
-    println("tabX: " + tabX);
-    println("tabY: " + tabY);
 }
