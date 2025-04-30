@@ -11,6 +11,7 @@ public class Pessoa {
     int tempoAcao = 0;
     int idade = 0;
     PVector posicaoTela = new PVector(-tamanhoCelula, -tamanhoCelula);
+    float tamanho = 0;
     color col = COLOR_IMUNE;
 
     Pessoa(Estado estado) {
@@ -62,14 +63,14 @@ public void draw() {
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
                     pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, 0.1);
                 }
-                PVector posicaoReal = new PVector(i * tamanhoCelula + 2, j * tamanhoCelula + 2);
+                PVector posicaoReal = new PVector(i * tamanhoCelula + (tamanhoCelula - pessoas[i][j].tamanho) / 2, j * tamanhoCelula + (tamanhoCelula - pessoas[i][j].tamanho) / 2);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
                 fill(pessoas[i][j].col);
-                rect(pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 2, tamanhoCelula - 2, tamanhoCelula / 3);
+                rect(pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
                 fill(255);
                 textSize(tamanhoCelula * 0.4);
-                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 4, tamanhoCelula - 4);
+                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 6, tamanhoCelula - 6);
             }
         }
     }
@@ -88,7 +89,7 @@ public void desenhaFundo() {
 }
 
 public void desenhaPlacar() {
-    textSize(20);
+    textSize(16);
     Pessoa[] todos = new Pessoa[0];
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++)
@@ -97,7 +98,7 @@ public void desenhaPlacar() {
 
     int nTop;
     nTop = min(todos.length, 5);
-    PVector tamanhoPlacar = new PVector(240, 24 + 32 * nTop);
+    PVector tamanhoPlacar = new PVector(240, 8 + 28 * (nTop + 1));
     todos = mergeSort(todos);
     
     Pessoa[] top5 = new Pessoa[5];
@@ -111,14 +112,14 @@ public void desenhaPlacar() {
     noStroke();
     fill(255);
     textAlign(LEFT, CENTER);
-    text("ID", 8, 8, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+    text("ID", 8, 8, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     textAlign(RIGHT, CENTER);
-    text("Pessoas Infectadas", 8, 8, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+    text("Infectados", 8, 8, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     for(int i = 0; i < nTop; i++) {
         textAlign(LEFT, CENTER);
-        text(str(top5[i].id), 8, 32 + i * tamanhoPlacar.y / (nTop + 1) - 4, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+        text(str(top5[i].id), 8, 8 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
         textAlign(RIGHT, CENTER);
-        text(str(top5[i].pessoasInfectadas), 8, 32 + i * tamanhoPlacar.y / (nTop + 1) - 4, tamanhoPlacar.x - 8, tamanhoPlacar.y / (nTop + 1) - 4);
+        text(str(top5[i].pessoasInfectadas), 8, 8 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     }
 }
 
@@ -155,6 +156,7 @@ public void simular() {
 
             if(pessoas[x][y] != null) {
                 pessoas[x][y].idade++;
+                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.8, 0.25);
                 if(pessoas[x][y].estado == Estado.INFECTADO) {
                     pessoas[x][y].tempoInfeccao++;
                     if(pessoas[x][y].tempoInfeccao >= pessoas[x][y].tempoRecuperacao) pessoas[x][y].estado = Estado.IMUNE;
@@ -164,7 +166,6 @@ public void simular() {
         }
     }
 
-    // MOVIMENTO
     for(int i = 0; i < tamanho; i++) {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null && pessoas[i][j].idade % pessoas[i][j].tempoAcao == 0) {
@@ -191,7 +192,6 @@ public void simular() {
         }
     }
 
-    // INFECÇÃO
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++) {
             if(pessoasNovo[i][j] != null)
@@ -239,6 +239,7 @@ public void mouseReleased() {
             }
 
             if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
+            pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
         }
     }
 }
@@ -260,6 +261,7 @@ public void keyTyped() {
             }
 
             if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
+            pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
         }
     }
 }
