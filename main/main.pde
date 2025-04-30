@@ -67,7 +67,6 @@ void draw() {
                 }
                 PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
-                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.9, 0.25);
                 fill(pessoas[i][j].col);
                 rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
