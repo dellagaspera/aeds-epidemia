@@ -57,20 +57,20 @@ public void draw() {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null) {
                 if(pessoas[i][j].estado == Estado.SUSCETIVEL) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
+                       pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
                 } else if(pessoas[i][j].estado == Estado.INFECTADO) {
                     pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, 0.1);
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
                     pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, 0.1);
                 }
-                PVector posicaoReal = new PVector(i * tamanhoCelula + (tamanhoCelula - pessoas[i][j].tamanho) / 2, j * tamanhoCelula + (tamanhoCelula - pessoas[i][j].tamanho) / 2);
+                PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
                 fill(pessoas[i][j].col);
-                rect(pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
+                rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
                 fill(255);
                 textSize(tamanhoCelula * 0.4);
-                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 6, tamanhoCelula - 6);
+                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho);
             }
         }
     }
@@ -135,7 +135,9 @@ public Pessoa[] mergeSort(Pessoa[] array) {
   int i = 0, j = 0, k = 0;
 
   while (i < subArray1.length && j < subArray2.length) {
-    if (subArray1[i].pessoasInfectadas <= subArray2[j].pessoasInfectadas) {
+    if (subArray1[i].pessoasInfectadas < subArray2[j].pessoasInfectadas) {
+      arrayOrdenado[k++] = subArray1[i++];
+    } else if(subArray1[i].id < subArray2[j].id && subArray1[i].pessoasInfectadas == subArray2[j].pessoasInfectadas) {
       arrayOrdenado[k++] = subArray1[i++];
     } else {
       arrayOrdenado[k++] = subArray2[j++];
@@ -156,7 +158,7 @@ public void simular() {
 
             if(pessoas[x][y] != null) {
                 pessoas[x][y].idade++;
-                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.8, 0.25);
+                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.9, 0.25);
                 if(pessoas[x][y].estado == Estado.INFECTADO) {
                     pessoas[x][y].tempoInfeccao++;
                     if(pessoas[x][y].tempoInfeccao >= pessoas[x][y].tempoRecuperacao) pessoas[x][y].estado = Estado.IMUNE;
@@ -260,8 +262,13 @@ public void keyTyped() {
                     estado = Estado.SUSCETIVEL;
             }
 
-            if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
-            pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
+            if(estado != null) {
+                pessoas[tabX][tabY] = new Pessoa(estado);
+                pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
+            }
         }
     }
+
+    if(key == 'r')
+        pessoas = new Pessoa[tamanho][tamanho];
 }
