@@ -40,8 +40,9 @@ int tamanhoCelula = 32;
 float chanceContagio = 0.5;
 int posicaoPlacar = 0;
 Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
+boolean pausado = false;
 
-public void setup() {
+void setup() {
     noStroke();
     textSize(tamanhoCelula * 0.25);
 }
@@ -50,8 +51,8 @@ void settings() {
     size(tamanho * tamanhoCelula, tamanho * tamanhoCelula);
 }
 
-public void draw() {
-    simular();
+void draw() {
+    if(!pausado) simular();
 
     desenhaFundo();
     for(int i = 0; i < tamanho; i++) {
@@ -66,6 +67,7 @@ public void draw() {
                 }
                 PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
+                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.9, 0.25);
                 fill(pessoas[i][j].col);
                 rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
@@ -78,8 +80,8 @@ public void draw() {
 
     desenhaPlacar();
 }
-
-public void desenhaFundo() {
+ 
+void desenhaFundo() {
     background(15, 34, 42);
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++)
@@ -89,7 +91,7 @@ public void desenhaFundo() {
             }
 }
 
-public void desenhaPlacar() {
+void desenhaPlacar() {
     textSize(16);
     Pessoa[] todos = new Pessoa[0];
     for(int i = 0; i < tamanho; i++)
@@ -139,42 +141,40 @@ public void desenhaPlacar() {
     }
 }
 
-public Pessoa[] mergeSort(Pessoa[] array) {
-  if (array.length <= 1) return array;
+Pessoa[] mergeSort(Pessoa[] array) {
+    if(array.length <= 1) return array;
 
-  int meio = array.length / 2;
+    int meio = array.length / 2;
 
-  Pessoa[] subArray1 = mergeSort((Pessoa[])subset(array, 0, meio));
-  Pessoa[] subArray2 = mergeSort((Pessoa[])subset(array, meio));
+    Pessoa[] subArray1 = mergeSort((Pessoa[])subset(array, 0, meio));
+    Pessoa[] subArray2 = mergeSort((Pessoa[])subset(array, meio));
 
-  Pessoa[] arrayOrdenado = new Pessoa[array.length];
-  int i = 0, j = 0, k = 0;
+    Pessoa[] arrayOrdenado = new Pessoa[array.length];
+    int i = 0, j = 0, k = 0;
 
-  while (i < subArray1.length && j < subArray2.length) {
-    if (subArray1[i].pessoasInfectadas < subArray2[j].pessoasInfectadas) {
-      arrayOrdenado[k++] = subArray1[i++];
-    } else if(subArray1[i].id < subArray2[j].id && subArray1[i].pessoasInfectadas == subArray2[j].pessoasInfectadas) {
-      arrayOrdenado[k++] = subArray1[i++];
-    } else {
-      arrayOrdenado[k++] = subArray2[j++];
+    while(i < subArray1.length && j < subArray2.length) {
+        if(subArray1[i].pessoasInfectadas < subArray2[j].pessoasInfectadas) {
+            arrayOrdenado[k++] = subArray1[i++];
+        } else if(subArray1[i].id < subArray2[j].id && subArray1[i].pessoasInfectadas == subArray2[j].pessoasInfectadas) {
+            arrayOrdenado[k++] = subArray1[i++];
+        } else {
+            arrayOrdenado[k++] = subArray2[j++];
+        }
     }
-  }
 
-  while (i < subArray1.length) arrayOrdenado[k++] = subArray1[i++];
-  while (j < subArray2.length) arrayOrdenado[k++] = subArray2[j++];
+    while(i < subArray1.length) arrayOrdenado[k++] = subArray1[i++];
+    while(j < subArray2.length) arrayOrdenado[k++] = subArray2[j++];
 
-  return arrayOrdenado;
+    return arrayOrdenado;
 }
 
-
-public void simular() {
+void simular() {
     Pessoa[][] pessoasNovo = new Pessoa[tamanho][tamanho];  
     for(int x = 0; x < tamanho; x++) {
         for(int y = 0; y < tamanho; y++) {
 
             if(pessoas[x][y] != null) {
                 pessoas[x][y].idade++;
-                pessoas[x][y].tamanho = lerp(pessoas[x][y].tamanho, tamanhoCelula * 0.9, 0.25);
                 if(pessoas[x][y].estado == Estado.INFECTADO) {
                     pessoas[x][y].tempoInfeccao++;
                     if(pessoas[x][y].tempoInfeccao >= pessoas[x][y].tempoRecuperacao) pessoas[x][y].estado = Estado.IMUNE;
@@ -240,7 +240,7 @@ public void simular() {
     pessoas = pessoasNovo;
 }
 
-public void mouseReleased() {
+void mouseReleased() {
     int tabX = mouseX / tamanhoCelula;
     int tabY = mouseY / tamanhoCelula;
 
@@ -262,7 +262,7 @@ public void mouseReleased() {
     }
 }
 
-public void keyTyped() {
+void keyTyped() {
     int tabX = mouseX / tamanhoCelula;
     int tabY = mouseY / tamanhoCelula;
 
@@ -294,4 +294,6 @@ public void keyTyped() {
         pessoas = new Pessoa[tamanho][tamanho];
     if(key == TAB)
         posicaoPlacar = (4 + posicaoPlacar + 1) % 4;
+    if(key == ' ')
+        pausado = !pausado;
 }
