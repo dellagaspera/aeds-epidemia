@@ -59,7 +59,7 @@ void draw() {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null) {
                 if(pessoas[i][j].estado == Estado.SUSCETIVEL) {
-                       pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
                 } else if(pessoas[i][j].estado == Estado.INFECTADO) {
                     pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, 0.1);
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
@@ -67,6 +67,7 @@ void draw() {
                 }
                 PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
+                pessoas[i][j].tamanho = lerp(pessoas[i][j].tamanho, tamanhoCelula * 0.8, 0.5);
                 fill(pessoas[i][j].col);
                 rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
