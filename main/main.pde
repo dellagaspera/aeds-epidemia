@@ -18,7 +18,7 @@ public class Pessoa {
         this.id = proxId;
         proxId++;
         this.estado = estado;
-        this.tempoRecuperacao = (int) random(1500, 3000);
+        this.tempoRecuperacao = (int) random(1500, 6000);
         this.tempoAcao = (int) random(30, 180);
         if(estado == Estado.SUSCETIVEL) {
             col = COLOR_SUSCETIVEL;
@@ -38,6 +38,7 @@ static int proxId = 0;
 int tamanho = 30;
 int tamanhoCelula = 32;
 float chanceContagio = 0.5;
+int posicaoPlacar = 0;
 Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
 
 public void setup() {
@@ -99,6 +100,21 @@ public void desenhaPlacar() {
     int nTop;
     nTop = min(todos.length, 5);
     PVector tamanhoPlacar = new PVector(240, 8 + 28 * (nTop + 1));
+    PVector posPlacar = new PVector(0, 0);
+    switch(posicaoPlacar) {
+        case 0:
+            posPlacar = new PVector(4, 4);
+        break;
+        case 1:
+            posPlacar = new PVector(width - tamanhoPlacar.x - 4, 4);
+        break;
+        case 2:
+            posPlacar = new PVector(width - tamanhoPlacar.x - 4, height - tamanhoPlacar.y - 4);
+        break;
+        case 3:
+            posPlacar = new PVector(4, height - tamanhoPlacar.y - 4);
+        break;
+    }
     todos = mergeSort(todos);
     
     Pessoa[] top5 = new Pessoa[5];
@@ -108,18 +124,18 @@ public void desenhaPlacar() {
 
     fill(15, 34, 42, 220);
     stroke(255);
-    rect(4, 4, tamanhoPlacar.x, tamanhoPlacar.y, 8);
+    rect(posPlacar.x, posPlacar.y, tamanhoPlacar.x, tamanhoPlacar.y, 8);
     noStroke();
     fill(255);
     textAlign(LEFT, CENTER);
-    text("ID", 8, 8, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+    text("ID", posPlacar.x + 4, posPlacar.y + 4, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     textAlign(RIGHT, CENTER);
-    text("Infectados", 8, 8, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+    text("Infectados", posPlacar.x + 4, posPlacar.y + 4, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     for(int i = 0; i < nTop; i++) {
         textAlign(LEFT, CENTER);
-        text(str(top5[i].id), 8, 8 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+        text(str(top5[i].id), posPlacar.x + 4, posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
         textAlign(RIGHT, CENTER);
-        text(str(top5[i].pessoasInfectadas), 8, 8 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+        text(str(top5[i].pessoasInfectadas), posPlacar.x + 4, posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     }
 }
 
@@ -271,4 +287,6 @@ public void keyTyped() {
 
     if(key == 'r')
         pessoas = new Pessoa[tamanho][tamanho];
+    if(key == 't')
+        posicaoPlacar = (4 + posicaoPlacar + 1) % 4;
 }
