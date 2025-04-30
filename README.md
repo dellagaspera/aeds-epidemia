@@ -18,3 +18,4 @@ Além disso, cada indivíduo possui um contador que guarda o número de pessoas 
 - 3: criar pessoa imune
 - TAB: alternar posição do placar
 - BACKSPACE: reiniciar tabuleiro
+- ESPAÇO: pausa/despausa a simulação
