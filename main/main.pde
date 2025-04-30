@@ -35,7 +35,7 @@ final color COLOR_SUSCETIVEL = color(80, 255, 80);
 final color COLOR_IMUNE = color(80, 80, 255);
 
 static int proxId = 0;
-int tamanho = 30;
+int tamanho = 24;
 int tamanhoCelula = 32;
 float chanceContagio = 0.5;
 int posicaoPlacar = 0;
@@ -270,12 +270,17 @@ public void keyTyped() {
         if(pessoas[tabX][tabY] == null) {
             Estado estado = null;
             switch(key) {
-                case 'a':
+                case '1':
                     estado = Estado.INFECTADO;
                 break;
 
-                case 'd':
+                case '2':
                     estado = Estado.SUSCETIVEL;
+                break;
+
+                case '3':
+                    estado = Estado.IMUNE;
+                break;
             }
 
             if(estado != null) {
@@ -285,8 +290,8 @@ public void keyTyped() {
         }
     }
 
-    if(key == 'r')
+    if(key == BACKSPACE)
         pessoas = new Pessoa[tamanho][tamanho];
-    if(key == 't')
+    if(key == TAB)
         posicaoPlacar = (4 + posicaoPlacar + 1) % 4;
 }
