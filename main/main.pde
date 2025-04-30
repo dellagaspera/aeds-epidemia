@@ -11,6 +11,7 @@ public class Pessoa {
     int tempoAcao = 0;
     int idade = 0;
     PVector posicaoTela = new PVector(-tamanhoCelula, -tamanhoCelula);
+    color col = COLOR_IMUNE;
 
     Pessoa(Estado estado) {
         this.id = proxId;
@@ -20,6 +21,10 @@ public class Pessoa {
         this.tempoAcao = (int) random(30, 180);
     }
 }
+
+final color COLOR_INFECTADO = color(255, 80, 80);
+final color COLOR_SUSCETIVEL = color(80, 255, 80);
+final color COLOR_IMUNE = color(80, 80, 255);
 
 static int proxId = 0;
 int tamanho = 16;
@@ -44,14 +49,15 @@ public void draw() {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null) {
                 if(pessoas[i][j].estado == Estado.SUSCETIVEL) {
-                    fill(80, 255, 80);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
                 } else if(pessoas[i][j].estado == Estado.INFECTADO) {
-                    fill(255, 80, 80);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, 0.1);
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
-                    fill(80, 80, 255);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, 0.1);
                 }
                 PVector posicaoReal = new PVector(i * tamanhoCelula + 2, j * tamanhoCelula + 2);
                 pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
+                fill(pessoas[i][j].col);
                 rect(pessoas[i][j].posicaoTela.x, pessoas[i][j].posicaoTela.y, tamanhoCelula - 2, tamanhoCelula - 2, tamanhoCelula / 3);
                 textAlign(CENTER, CENTER);
                 fill(255);
@@ -151,28 +157,17 @@ public void simular() {
         }
     }
 
+    // MOVIMENTO
     for(int i = 0; i < tamanho; i++) {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null && pessoas[i][j].idade % pessoas[i][j].tempoAcao == 0) {
                 pessoas[i][j].idade = 0;
                 ArrayList<PVector> adjacentesLivres = new ArrayList<PVector>();
-                ArrayList<PVector> adjacentesOcupados = new ArrayList<PVector>();
                 for(int x = -1; x <= 1; x++) {
                     for(int y = -1; y <= 1; y++) {
                         if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
                             if(pessoasNovo[i + x][j + y] == null)
                                 adjacentesLivres.add(new PVector(i + x, j + y));
-                            else
-                                adjacentesOcupados.add(new PVector(i + x, j + y));
-                    }
-                }
-
-                if(pessoasNovo[i][j].estado == Estado.INFECTADO && adjacentesOcupados.size() > 0) {
-                    for(PVector posicao : adjacentesOcupados) {
-                        if(random(1) < chanceContagio && pessoasNovo[(int)posicao.x][(int)posicao.y].estado == Estado.SUSCETIVEL) {
-                            pessoasNovo[i][j].pessoasInfectadas++;
-                            pessoasNovo[(int)posicao.x][(int)posicao.y].estado = Estado.INFECTADO;
-                        }
                     }
                 }
 
@@ -186,6 +181,32 @@ public void simular() {
             }
         }
     }
+
+    // INFECÇÃO
+    for(int i = 0; i < tamanho; i++)
+        for(int j = 0; j < tamanho; j++) {
+            if(pessoasNovo[i][j] != null)
+                if(pessoasNovo[i][j].estado == Estado.INFECTADO && pessoasNovo[i][j].idade == 0) {
+                    ArrayList<PVector> infectaveis = new ArrayList<PVector>();
+                    for(int x = -1; x <= 1; x++)
+                        for(int y = -1; y <= 1; y++)
+                            if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
+                                if(pessoasNovo[i + x][j + y] != null)
+                                    if(pessoasNovo[i + x][j + y].estado == Estado.SUSCETIVEL) 
+                                        infectaveis.add(new PVector(i + x, j + y));    
+
+                    
+                    if(infectaveis.size() > 0) {
+                        for(PVector posicao : infectaveis) {
+                            int x = (int)posicao.x;
+                            int y = (int)posicao.y;
+                            if(random(1) <= chanceContagio) pessoasNovo[x][y].estado = Estado.INFECTADO;
+                        }
+                    }
+                }
+            
+        }
+
     pessoas = pessoasNovo;
 }
 
