@@ -3,7 +3,7 @@ enum Estado {
 };
 
 public class Pessoa {
-    int id;
+    int id = 0;
     Estado estado = Estado.SUSCETIVEL;
     int tempoInfeccao = 0;
     int tempoRecuperacao = 0;
@@ -19,6 +19,13 @@ public class Pessoa {
         this.estado = estado;
         this.tempoRecuperacao = (int) random(1500, 3000);
         this.tempoAcao = (int) random(30, 180);
+        if(estado == Estado.SUSCETIVEL) {
+            col = COLOR_SUSCETIVEL;
+        } else if(estado == Estado.INFECTADO) {
+            col = COLOR_INFECTADO;
+        } else if(estado == Estado.IMUNE) {
+            col = COLOR_IMUNE;
+        }
     }
 }
 
@@ -27,8 +34,8 @@ final color COLOR_SUSCETIVEL = color(80, 255, 80);
 final color COLOR_IMUNE = color(80, 80, 255);
 
 static int proxId = 0;
-int tamanho = 16;
-int tamanhoCelula = 50;
+int tamanho = 30;
+int tamanhoCelula = 32;
 float chanceContagio = 0.5;
 Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
 
@@ -162,21 +169,23 @@ public void simular() {
         for(int j = 0; j < tamanho; j++) {
             if(pessoas[i][j] != null && pessoas[i][j].idade % pessoas[i][j].tempoAcao == 0) {
                 pessoas[i][j].idade = 0;
-                ArrayList<PVector> adjacentesLivres = new ArrayList<PVector>();
+                PVector[] adjacentes = new PVector[0];
                 for(int x = -1; x <= 1; x++) {
                     for(int y = -1; y <= 1; y++) {
-                        if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
-                            if(pessoasNovo[i + x][j + y] == null)
-                                adjacentesLivres.add(new PVector(i + x, j + y));
+                        if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho) {
+                            adjacentes = (PVector[])append(adjacentes, new PVector(i + x, j + y));
+                        }
                     }
                 }
 
-                if(adjacentesLivres.size() > 0) {
-                    int index = (int)random(adjacentesLivres.size());
-                    int x = (int)adjacentesLivres.get(index).x;
-                    int y = (int)adjacentesLivres.get(index).y;
-                    pessoasNovo[x][y] = pessoas[i][j];
-                    pessoasNovo[i][j] = null;
+                int index = (int)random(8);
+                if(index < adjacentes.length) {
+                    int x = (int)adjacentes[index].x;
+                    int y = (int)adjacentes[index].y;
+                    if(pessoasNovo[x][y] == null) {
+                        pessoasNovo[i][j] = null;
+                        pessoasNovo[x][y] = pessoas[i][j];
+                    }
                 }
             }
         }
@@ -200,7 +209,10 @@ public void simular() {
                         for(PVector posicao : infectaveis) {
                             int x = (int)posicao.x;
                             int y = (int)posicao.y;
-                            if(random(1) <= chanceContagio) pessoasNovo[x][y].estado = Estado.INFECTADO;
+                            if(random(1) <= chanceContagio) {
+                                pessoasNovo[i][j].pessoasInfectadas++;
+                                pessoasNovo[x][y].estado = Estado.INFECTADO;
+                            }
                         }
                     }
                 }
@@ -223,6 +235,27 @@ public void mouseReleased() {
                 break;
 
                 case RIGHT:
+                    estado = Estado.SUSCETIVEL;
+            }
+
+            if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
+        }
+    }
+}
+
+public void keyTyped() {
+    int tabX = mouseX / tamanhoCelula;
+    int tabY = mouseY / tamanhoCelula;
+
+    if(tabX >= 0 && tabX < tamanho && tabY >= 0 && tabY < tamanho) {
+        if(pessoas[tabX][tabY] == null) {
+            Estado estado = null;
+            switch(key) {
+                case 'a':
+                    estado = Estado.INFECTADO;
+                break;
+
+                case 'd':
                     estado = Estado.SUSCETIVEL;
             }
 
