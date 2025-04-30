@@ -1,4 +1,4 @@
-# Epidemia
+# ☣️ Epidemia
 por: André Dias de Paula, Bernardo Drummond Oliveira Penna, Frederico Santos Gonçalves, Gabriel Della Gaspera
 
 ### Sobre:
