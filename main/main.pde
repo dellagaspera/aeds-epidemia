@@ -1,47 +1,3 @@
-enum Estado {
-    SUSCETIVEL, INFECTADO, IMUNE
-};
-
-public class Pessoa {
-    int id = 0;
-    Estado estado = Estado.SUSCETIVEL;
-    int tempoInfeccao = 0;
-    int tempoRecuperacao = 0;
-    int pessoasInfectadas = 0;
-    int tempoAcao = 0;
-    int idade = 0;
-    PVector posicaoTela = new PVector(-tamanhoCelula, -tamanhoCelula);
-    float tamanho = 0;
-    color col = COLOR_IMUNE;
-
-    Pessoa(Estado estado) {
-        this.id = proxId;
-        proxId++;
-        this.estado = estado;
-        this.tempoRecuperacao = (int) random(1500, 6000);
-        this.tempoAcao = (int) random(30, 180);
-        if(estado == Estado.SUSCETIVEL) {
-            col = COLOR_SUSCETIVEL;
-        } else if(estado == Estado.INFECTADO) {
-            col = COLOR_INFECTADO;
-        } else if(estado == Estado.IMUNE) {
-            col = COLOR_IMUNE;
-        }
-    }
-}
-
-final color COLOR_INFECTADO = color(255, 80, 80);
-final color COLOR_SUSCETIVEL = color(80, 255, 80);
-final color COLOR_IMUNE = color(80, 80, 255);
-
-static int proxId = 0;
-int tamanho = 24;
-int tamanhoCelula = 32;
-float chanceContagio = 0.5;
-int posicaoPlacar = 0;
-Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
-boolean pausado = false;
-
 void setup() {
     noStroke();
     textSize(tamanhoCelula * 0.25);
@@ -52,28 +8,46 @@ void settings() {
 }
 
 void draw() {
-    if(!pausado) simular();
+    if(!pausado) simular(); // A simulação só rodara caso não esteja pausado
 
     desenhaFundo();
+
+    // Loop em cada pessoa
     for(int i = 0; i < tamanho; i++) {
         for(int j = 0; j < tamanho; j++) {
-            if(pessoas[i][j] != null) {
+            if(pessoas[i][j] != null) { 
+
+                // Altera, gradualmente, a cor da pessoa para o estado atual dela
                 if(pessoas[i][j].estado == Estado.SUSCETIVEL) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, 0.1);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, min(1, tempoInterpolacaoCor*velocidadeTempo));
                 } else if(pessoas[i][j].estado == Estado.INFECTADO) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, 0.1);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, min(1, tempoInterpolacaoCor*velocidadeTempo));
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, 0.1);
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, min(1, tempoInterpolacaoCor*velocidadeTempo));
                 }
+ 
+                // Altera, gradualmente, a posição e o tamanho da pessoa na tela
                 PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
-                pessoas[i][j].posicaoTela.lerp(posicaoReal, 0.5);
-                pessoas[i][j].tamanho = lerp(pessoas[i][j].tamanho, tamanhoCelula * 0.8, 0.5);
+                pessoas[i][j].posicaoTela.lerp(posicaoReal, min(tempoInterpolacaoMovimento*velocidadeTempo, 1));
+                
+                pessoas[i][j].tamanho = lerp(pessoas[i][j].tamanho, tamanhoCelula * 0.8, min(tempoInterpolacaoTamanho*velocidadeTempo, 1) );
+
+                // Desenha cada pessoa
                 fill(pessoas[i][j].col);
-                rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho, tamanhoCelula / 3);
+                rect(pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, 
+                    pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, 
+                    pessoas[i][j].tamanho, pessoas[i][j].tamanho, 
+                    tamanhoCelula / 3);
+
+                // Escreve o ID da pessoa
                 textAlign(CENTER, CENTER);
                 fill(255);
                 textSize(tamanhoCelula * 0.4);
-                text(str(pessoas[i][j].id), pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, pessoas[i][j].tamanho, pessoas[i][j].tamanho);
+
+                text(str(pessoas[i][j].id), 
+                    pessoas[i][j].posicaoTela.x + (tamanhoCelula - pessoas[i][j].tamanho) / 2, 
+                    pessoas[i][j].posicaoTela.y + (tamanhoCelula - pessoas[i][j].tamanho) / 2, 
+                    pessoas[i][j].tamanho, pessoas[i][j].tamanho);
             }
         }
     }
@@ -81,6 +55,7 @@ void draw() {
     desenhaPlacar();
 }
  
+// Desenha o fundo super legal
 void desenhaFundo() {
     background(15, 34, 42);
     for(int i = 0; i < tamanho; i++)
@@ -93,12 +68,16 @@ void desenhaFundo() {
 
 void desenhaPlacar() {
     textSize(16);
+
+    // Lista de todas as pessoas
     Pessoa[] todos = new Pessoa[0];
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++)
-            if(pessoas[i][j] != null) todos = (Pessoa[])append(todos, pessoas[i][j]);
+            if(pessoas[i][j] != null) 
+                todos = (Pessoa[])append(todos, pessoas[i][j]);
     if(todos.length == 0) return;
 
+    // Obtém a posição do placar
     int nTop;
     nTop = min(todos.length, 5);
     PVector tamanhoPlacar = new PVector(240, 8 + 28 * (nTop + 1));
@@ -117,13 +96,17 @@ void desenhaPlacar() {
             posPlacar = new PVector(4, height - tamanhoPlacar.y - 4);
         break;
     }
+
+    // Organiza o vetor
     todos = mergeSort(todos);
     
+    // Lista com os 5 melhores (ou menos)
     Pessoa[] top5 = new Pessoa[5];
     for(int i = 0; i < 5; i++) {
         if(todos.length - i - 1 >= 0) top5[i] = todos[todos.length - i - 1];
     }
 
+    // Desenha o placar
     fill(15, 34, 42, 220);
     stroke(255);
     rect(posPlacar.x, posPlacar.y, tamanhoPlacar.x, tamanhoPlacar.y, 8);
@@ -133,11 +116,22 @@ void desenhaPlacar() {
     text("ID", posPlacar.x + 4, posPlacar.y + 4, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     textAlign(RIGHT, CENTER);
     text("Infectados", posPlacar.x + 4, posPlacar.y + 4, tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+
+    // Escreve o nome dos Top 5
     for(int i = 0; i < nTop; i++) {
         textAlign(LEFT, CENTER);
-        text(str(top5[i].id), posPlacar.x + 4, posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+        text(str(top5[i].id), 
+            posPlacar.x + 4, 
+            posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), 
+            tamanhoPlacar.x - 8, 
+            (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+
         textAlign(RIGHT, CENTER);
-        text(str(top5[i].pessoasInfectadas), posPlacar.x + 4, posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), tamanhoPlacar.x - 8, (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
+        text(str(top5[i].pessoasInfectadas), 
+            posPlacar.x + 4, 
+            posPlacar.y + 4 + (i + 1) * (tamanhoPlacar.y - 0) / (nTop + 1), 
+            tamanhoPlacar.x - 8, 
+            (tamanhoPlacar.y - 8) / (nTop + 1) - 8);
     }
 }
 
@@ -146,12 +140,14 @@ Pessoa[] mergeSort(Pessoa[] array) {
 
     int meio = array.length / 2;
 
+    // Divide o vetor em 2
     Pessoa[] subArray1 = mergeSort((Pessoa[])subset(array, 0, meio));
     Pessoa[] subArray2 = mergeSort((Pessoa[])subset(array, meio));
 
     Pessoa[] arrayOrdenado = new Pessoa[array.length];
     int i = 0, j = 0, k = 0;
 
+    // Ordena o vetor
     while(i < subArray1.length && j < subArray2.length) {
         if(subArray1[i].pessoasInfectadas < subArray2[j].pessoasInfectadas) {
             arrayOrdenado[k++] = subArray1[i++];
@@ -165,18 +161,24 @@ Pessoa[] mergeSort(Pessoa[] array) {
     while(i < subArray1.length) arrayOrdenado[k++] = subArray1[i++];
     while(j < subArray2.length) arrayOrdenado[k++] = subArray2[j++];
 
+    // Retorna o vetor organizado
     return arrayOrdenado;
 }
 
 void simular() {
+    // Cria um vetor clone de pessoas (para fazer as atualizações)
     Pessoa[][] pessoasNovo = new Pessoa[tamanho][tamanho];  
+
+    // Para cada pessoa no vetor, a pessoa envelhece, atualizar
+    // o contador de "tempo infectado" e, se a pessoa já puder
+    // se recuperar, ela é considerada imune
     for(int x = 0; x < tamanho; x++) {
         for(int y = 0; y < tamanho; y++) {
 
             if(pessoas[x][y] != null) {
-                pessoas[x][y].idade++;
+                pessoas[x][y].idade += 1 * velocidadeTempo;
                 if(pessoas[x][y].estado == Estado.INFECTADO) {
-                    pessoas[x][y].tempoInfeccao++;
+                    pessoas[x][y].tempoInfeccao += 1 * velocidadeTempo;
                     if(pessoas[x][y].tempoInfeccao >= pessoas[x][y].tempoRecuperacao) pessoas[x][y].estado = Estado.IMUNE;
                 }
             }
@@ -184,24 +186,38 @@ void simular() {
         }
     }
 
+    // Para cada pessoa no vetor, se for momento dela fazer uma ação,
+    // ela se move para alguma posição adjacente
     for(int i = 0; i < tamanho; i++) {
         for(int j = 0; j < tamanho; j++) {
-            if(pessoas[i][j] != null && pessoas[i][j].idade % pessoas[i][j].tempoAcao == 0) {
+            if(pessoas[i][j] != null && pessoas[i][j].idade > pessoas[i][j].tempoAcao) {
                 pessoas[i][j].idade = 0;
+
+                // Vetor que cuida das possíveis posições que a pessoa pode ir
                 PVector[] adjacentes = new PVector[0];
+
+                // Posições (adjacentes) que a pessoa pode ir
                 for(int x = -1; x <= 1; x++) {
                     for(int y = -1; y <= 1; y++) {
-                        if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho) {
+                        if((x != 0 || y != 0)               // Se não for da, exatamente, mesma posição da pessoa atual
+                        && x + i >= 0 && x + i < tamanho    // Se o movimento x estiver dentro da área do grid
+                        && y + j >= 0 && y + j < tamanho) { // Se o movimento y estiver dentro da área do grid
+
+                            // Adiciona essa posição para o vetor
                             adjacentes = (PVector[])append(adjacentes, new PVector(i + x, j + y));
                         }
                     }
                 }
 
-                int index = (int)random(8);
+                // Escolhe um valor de 1 a 8 (8 = número máximo de casas adjacentes).
+                // Se a respectiva casa escolhida estiver vazia, se move para ela.
+                int index = (int)random(8); 
                 if(index < adjacentes.length) {
                     int x = (int)adjacentes[index].x;
                     int y = (int)adjacentes[index].y;
                     if(pessoasNovo[x][y] == null) {
+                        // Se move para a casa escolhida e deixa a casa
+                        // que a pessoa atual estava vazia
                         pessoasNovo[i][j] = null;
                         pessoasNovo[x][y] = pessoas[i][j];
                     }
@@ -210,20 +226,31 @@ void simular() {
         }
     }
 
+
+    // Loop em cada pessoa (infectada)
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++) {
             if(pessoasNovo[i][j] != null)
                 if(pessoasNovo[i][j].estado == Estado.INFECTADO && pessoasNovo[i][j].idade == 0) {
+                    // Lista que guarda as posições (com pessoas) que pode infectar
                     ArrayList<PVector> infectaveis = new ArrayList<PVector>();
+
+                    // Verifica as casas adjacentes para ver se pode infectar alguém
                     for(int x = -1; x <= 1; x++)
                         for(int y = -1; y <= 1; y++)
-                            if((x != 0 || y != 0) && x + i >= 0 && x + i < tamanho && y + j >= 0 && y + j < tamanho)
-                                if(pessoasNovo[i + x][j + y] != null)
-                                    if(pessoasNovo[i + x][j + y].estado == Estado.SUSCETIVEL) 
-                                        infectaveis.add(new PVector(i + x, j + y));    
+                            if((x != 0 || y != 0)               // Se não for da, exatamente, mesma posição da pessoa atual
+                            && x + i >= 0 && x + i < tamanho    // Se o movimento x estiver dentro da área do grid
+                            && y + j >= 0 && y + j < tamanho)   // Se o movimento y estiver dentro da área do grid
+                                if(pessoasNovo[i + x][j + y] != null) // Se alguém estiver naquela casa
+                                    if(pessoasNovo[i + x][j + y].estado == Estado.SUSCETIVEL) // Se a pessoa naquela casa for suscetível
+                                        // Adiciona a pessoa na lista de "infectáveis" 
+                                        infectaveis.add(new PVector(i + x, j + y));         
 
                     
+                    // Se encontrou, pelo menos, uma pessoa para infectar,
+                    // tenta a sorte para infectá-la!
                     if(infectaveis.size() > 0) {
+                        // Tenta infectar todas as pessoas infectáveis
                         for(PVector posicao : infectaveis) {
                             int x = (int)posicao.x;
                             int y = (int)posicao.y;
@@ -237,13 +264,17 @@ void simular() {
             
         }
 
+    // O vetor pessoas agora é o clone
     pessoas = pessoasNovo;
 }
 
 void mouseReleased() {
+    // A célula que o mouse está em cima
     int tabX = mouseX / tamanhoCelula;
     int tabY = mouseY / tamanhoCelula;
 
+    // Se o mouse está em cima de uma célula válida, adiciona
+    // uma pessoa infectada ou suscetível nela.
     if(tabX >= 0 && tabX < tamanho && tabY >= 0 && tabY < tamanho) {
         if(pessoas[tabX][tabY] == null) {
             Estado estado = null;
@@ -251,11 +282,13 @@ void mouseReleased() {
                 case LEFT:
                     estado = Estado.INFECTADO;
                 break;
-
+    
                 case RIGHT:
                     estado = Estado.SUSCETIVEL;
+                break;
             }
 
+            // Adiciona uma pessoa se a entrada for certa
             if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
             pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
         }
@@ -295,5 +328,5 @@ void keyTyped() {
     if(key == TAB)
         posicaoPlacar = (4 + posicaoPlacar + 1) % 4;
     if(key == ' ')
-        pausado = !pausado;
+        pausado = !pausado; 
 }
