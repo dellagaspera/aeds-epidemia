@@ -23,4 +23,4 @@ public class Pessoa {
             col = COLOR_IMUNE;
         }
     }
-}
+} 

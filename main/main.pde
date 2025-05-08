@@ -10,6 +10,9 @@ void settings() {
 void draw() {
     if(!pausado) simular(); // A simulação só rodara caso não esteja pausado
 
+    mouseXGrid = mouseX / tamanhoCelula;
+    mouseYGrid = mouseY / tamanhoCelula;
+
     desenhaFundo();
 
     // Loop em cada pessoa
@@ -59,11 +62,17 @@ void draw() {
 void desenhaFundo() {
     background(15, 34, 42);
     for(int i = 0; i < tamanho; i++)
-        for(int j = 0; j < tamanho; j++)
+        for(int j = 0; j < tamanho; j++) {
             if((i + j) % 2 == 0) {
                 fill(20, 41, 52);
                 rect(i * tamanhoCelula, j * tamanhoCelula, tamanhoCelula, tamanhoCelula, 10);
             }
+            // Mostra a célula que o mouse está em cima
+            if(mouseXGrid == i && mouseYGrid == j) {
+                fill(255, 255, 255, 50);
+                rect(i * tamanhoCelula, j * tamanhoCelula, tamanhoCelula, tamanhoCelula, 10);
+            }
+        }
 }
 
 void desenhaPlacar() {
@@ -269,14 +278,10 @@ void simular() {
 }
 
 void mouseReleased() {
-    // A célula que o mouse está em cima
-    int tabX = mouseX / tamanhoCelula;
-    int tabY = mouseY / tamanhoCelula;
-
     // Se o mouse está em cima de uma célula válida, adiciona
     // uma pessoa infectada ou suscetível nela.
-    if(tabX >= 0 && tabX < tamanho && tabY >= 0 && tabY < tamanho) {
-        if(pessoas[tabX][tabY] == null) {
+    if(mouseXGrid >= 0 && mouseXGrid < tamanho && mouseYGrid >= 0 && mouseYGrid < tamanho) {
+        if(pessoas[mouseXGrid][mouseYGrid] == null) {
             Estado estado = null;
             switch(mouseButton) {
                 case LEFT:
@@ -289,18 +294,15 @@ void mouseReleased() {
             }
 
             // Adiciona uma pessoa se a entrada for certa
-            if(estado != null) pessoas[tabX][tabY] = new Pessoa(estado);
-            pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
+            if(estado != null) pessoas[mouseXGrid][mouseYGrid] = new Pessoa(estado);
+            pessoas[mouseXGrid][mouseYGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseYGrid * tamanhoCelula);
         }
     }
 }
 
-void keyTyped() {
-    int tabX = mouseX / tamanhoCelula;
-    int tabY = mouseY / tamanhoCelula;
-
-    if(tabX >= 0 && tabX < tamanho && tabY >= 0 && tabY < tamanho) {
-        if(pessoas[tabX][tabY] == null) {
+void keyPressed() {
+    if(mouseXGrid >= 0 && mouseXGrid < tamanho && mouseXGrid >= 0 && mouseXGrid < tamanho) {
+        if(pessoas[mouseXGrid][mouseXGrid] == null) {
             Estado estado = null;
             switch(key) {
                 case '1':
@@ -317,8 +319,8 @@ void keyTyped() {
             }
 
             if(estado != null) {
-                pessoas[tabX][tabY] = new Pessoa(estado);
-                pessoas[tabX][tabY].posicaoTela = new PVector(tabX * tamanhoCelula, tabY * tamanhoCelula);
+                pessoas[mouseXGrid][mouseXGrid] = new Pessoa(estado);
+                pessoas[mouseXGrid][mouseXGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseXGrid * tamanhoCelula);
             }
         }
     }

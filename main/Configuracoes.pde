@@ -23,7 +23,7 @@ final float tempoInterpolacaoTamanho = 0.5f;
 
 // Velocidade da Simulação (feito por diversão). 
 // Note que não é a quantidade de simulações por frame!
-final float velocidadeTempo = 1f; // não exagere :)
+final float velocidadeTempo = 100f; // não exagere :)
 
 // Posição que o placar se encontra na tela (algum canto)
 int posicaoPlacar = 0;
@@ -33,3 +33,7 @@ Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
 
 // Se a simulação está pausada ou não
 boolean pausado = false;
+
+// Posição do mouse na grade
+int mouseXGrid = 0;
+int mouseYGrid = 0;
