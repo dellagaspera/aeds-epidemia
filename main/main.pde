@@ -319,8 +319,8 @@ void keyPressed() {
             }
 
             if(estado != null) {
-                pessoas[mouseXGrid][mouseXGrid] = new Pessoa(estado);
-                pessoas[mouseXGrid][mouseXGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseXGrid * tamanhoCelula);
+                pessoas[mouseXGrid][mouseYGrid] = new Pessoa(estado);
+                pessoas[mouseXGrid][mouseYGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseYGrid * tamanhoCelula);
             }
         }
     }
