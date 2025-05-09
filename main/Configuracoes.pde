@@ -16,14 +16,14 @@ static int proxId = 0;
 // Chance de se contagiar e virar um infectado
 final float chanceContagio = 0.5;
 
-// Velocidades de Interpolação
+// VeloccicloAcaos de Interpolação
 final float tempoInterpolacaoCor = 0.1f;
-final float tempoInterpolacaoMovimento = 0.5f;
+final float tempoInterpolacaoMovimento = 0.25f;
 final float tempoInterpolacaoTamanho = 0.5f;
 
-// Velocidade da Simulação (feito por diversão). 
-// Note que não é a quantidade de simulações por frame!
-final float velocidadeTempo = 100f; // não exagere :)
+// VeloccicloAcao da Simulação (feito por diversão). 
+// Note que é a quantcicloAcao de simulações por frame!
+final int veloccicloAcaoTempo = 1; // não exagere :)
 
 // Posição que o placar se encontra na tela (algum canto)
 int posicaoPlacar = 0;
@@ -35,5 +35,6 @@ Pessoa[][] pessoas = new Pessoa[tamanho][tamanho];
 boolean pausado = false;
 
 // Posição do mouse na grade
+int ultimaTrocaSelecao = 0;
 int mouseXGrid = 0;
 int mouseYGrid = 0;

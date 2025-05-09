@@ -8,10 +8,16 @@ void settings() {
 }
 
 void draw() {
-    if(!pausado) simular(); // A simulação só rodara caso não esteja pausado
-
+    if(!pausado) for(int i = 0; i < veloccicloAcaoTempo; i++) simular(); // A simulação só rodara caso não esteja pausado
+    
+    int ultimoX = mouseXGrid;
+    int ultimoY = mouseYGrid;
     mouseXGrid = mouseX / tamanhoCelula;
     mouseYGrid = mouseY / tamanhoCelula;
+
+    if(mouseXGrid != ultimoX || mouseYGrid != ultimoY) {
+        ultimaTrocaSelecao = 0;
+    }
 
     desenhaFundo();
 
@@ -22,18 +28,18 @@ void draw() {
 
                 // Altera, gradualmente, a cor da pessoa para o estado atual dela
                 if(pessoas[i][j].estado == Estado.SUSCETIVEL) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, min(1, tempoInterpolacaoCor*velocidadeTempo));
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_SUSCETIVEL, min(1, tempoInterpolacaoCor * veloccicloAcaoTempo));
                 } else if(pessoas[i][j].estado == Estado.INFECTADO) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, min(1, tempoInterpolacaoCor*velocidadeTempo));
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_INFECTADO, min(1, tempoInterpolacaoCor * veloccicloAcaoTempo));
                 } else if(pessoas[i][j].estado == Estado.IMUNE) {
-                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, min(1, tempoInterpolacaoCor*velocidadeTempo));
+                    pessoas[i][j].col = lerpColor(pessoas[i][j].col, COLOR_IMUNE, min(1, tempoInterpolacaoCor * veloccicloAcaoTempo));
                 }
  
                 // Altera, gradualmente, a posição e o tamanho da pessoa na tela
                 PVector posicaoReal = new PVector(i * tamanhoCelula, j * tamanhoCelula);
-                pessoas[i][j].posicaoTela.lerp(posicaoReal, min(tempoInterpolacaoMovimento*velocidadeTempo, 1));
+                pessoas[i][j].posicaoTela.lerp(posicaoReal, min(tempoInterpolacaoMovimento * veloccicloAcaoTempo, 1));
                 
-                pessoas[i][j].tamanho = lerp(pessoas[i][j].tamanho, tamanhoCelula * 0.8, min(tempoInterpolacaoTamanho*velocidadeTempo, 1) );
+                pessoas[i][j].tamanho = lerp(pessoas[i][j].tamanho, tamanhoCelula * 0.8, min(tempoInterpolacaoTamanho * veloccicloAcaoTempo, 1) );
 
                 // Desenha cada pessoa
                 fill(pessoas[i][j].col);
@@ -178,16 +184,17 @@ void simular() {
     // Cria um vetor clone de pessoas (para fazer as atualizações)
     Pessoa[][] pessoasNovo = new Pessoa[tamanho][tamanho];  
 
-    // Para cada pessoa no vetor, a pessoa envelhece, atualizar
-    // o contador de "tempo infectado" e, se a pessoa já puder
-    // se recuperar, ela é considerada imune
+    /* Para cada pessoa no vetor, a pessoa envelhece, atualizar
+     * o contador de "tempo infectado" e, se a pessoa já puder
+     * se recuperar, ela é considerada imune 
+     */ 
     for(int x = 0; x < tamanho; x++) {
         for(int y = 0; y < tamanho; y++) {
 
             if(pessoas[x][y] != null) {
-                pessoas[x][y].idade += 1 * velocidadeTempo;
+                pessoas[x][y].cicloAcao += 1;
                 if(pessoas[x][y].estado == Estado.INFECTADO) {
-                    pessoas[x][y].tempoInfeccao += 1 * velocidadeTempo;
+                    pessoas[x][y].tempoInfeccao += 1;
                     if(pessoas[x][y].tempoInfeccao >= pessoas[x][y].tempoRecuperacao) pessoas[x][y].estado = Estado.IMUNE;
                 }
             }
@@ -199,8 +206,8 @@ void simular() {
     // ela se move para alguma posição adjacente
     for(int i = 0; i < tamanho; i++) {
         for(int j = 0; j < tamanho; j++) {
-            if(pessoas[i][j] != null && pessoas[i][j].idade > pessoas[i][j].tempoAcao) {
-                pessoas[i][j].idade = 0;
+            if(pessoas[i][j] != null && pessoas[i][j].cicloAcao > pessoas[i][j].tempoAcao) {
+                pessoas[i][j].cicloAcao = 0;
 
                 // Vetor que cuida das possíveis posições que a pessoa pode ir
                 PVector[] adjacentes = new PVector[0];
@@ -240,7 +247,7 @@ void simular() {
     for(int i = 0; i < tamanho; i++)
         for(int j = 0; j < tamanho; j++) {
             if(pessoasNovo[i][j] != null)
-                if(pessoasNovo[i][j].estado == Estado.INFECTADO && pessoasNovo[i][j].idade == 0) {
+                if(pessoasNovo[i][j].estado == Estado.INFECTADO && pessoasNovo[i][j].cicloAcao == 0) {
                     // Lista que guarda as posições (com pessoas) que pode infectar
                     ArrayList<PVector> infectaveis = new ArrayList<PVector>();
 
@@ -319,14 +326,16 @@ void keyPressed() {
             }
 
             if(estado != null) {
-                pessoas[mouseXGrid][mouseXGrid] = new Pessoa(estado);
-                pessoas[mouseXGrid][mouseXGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseXGrid * tamanhoCelula);
+                pessoas[mouseXGrid][mouseYGrid] = new Pessoa(estado);
+                pessoas[mouseXGrid][mouseYGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseYGrid * tamanhoCelula);
             }
         }
     }
 
-    if(key == BACKSPACE)
+    if(key == BACKSPACE) {
         pessoas = new Pessoa[tamanho][tamanho];
+        proxId = 0;
+    }
     if(key == TAB)
         posicaoPlacar = (4 + posicaoPlacar + 1) % 4;
     if(key == ' ')
