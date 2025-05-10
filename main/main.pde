@@ -62,6 +62,9 @@ void draw() {
     }
 
     desenhaPlacar();
+    if(pessoas[mouseXGrid][mouseYGrid] != null) {
+        desenhaHover();
+    }
 }
  
 // Desenha o fundo super legal
@@ -284,6 +287,47 @@ void simular() {
     pessoas = pessoasNovo;
 }
 
+void desenhaHover() {
+    int espacoTexto = 12;
+    int margem = 8;
+    int tamanhoTexto = 12;
+    PVector tamanhoJanela = new PVector(320 + 2 * margem, espacoTexto * 5 + tamanhoTexto * 6 + 2 * margem);
+    // PVector posJanela = new PVector(mouseXGrid * tamanhoCelula, mouseYGrid * tamanhoCelula);
+    PVector posJanela = new PVector(mouseX, mouseY - tamanhoJanela.y);
+
+    fill(0, 0, 0, 150);
+    rect(posJanela.x, posJanela.y, tamanhoJanela.x, tamanhoJanela.y, 10);
+    String estadoStr = "";
+    if(pessoas[mouseXGrid][mouseYGrid] != null) {
+        if(pessoas[mouseXGrid][mouseYGrid].estado == Estado.SUSCETIVEL) estadoStr = "Suscetível";
+        else if(pessoas[mouseXGrid][mouseYGrid].estado == Estado.INFECTADO) estadoStr = "Infectado";
+        else if(pessoas[mouseXGrid][mouseYGrid].estado == Estado.IMUNE) estadoStr = "Imune";
+    }
+
+    textAlign(LEFT, CENTER);
+    textSize(tamanhoTexto);
+    fill(255);
+
+    text("ID: " + str(pessoas[mouseXGrid][mouseYGrid].id), 
+        posJanela.x + margem, posJanela.y + 0 * espacoTexto + tamanhoTexto * 0 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+    text("Estado: " + estadoStr, 
+        posJanela.x + margem, posJanela.y + 1 * espacoTexto + tamanhoTexto * 1 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+    text("Tempo de infecção: " + str(pessoas[mouseXGrid][mouseYGrid].tempoInfeccao),
+        posJanela.x + margem, posJanela.y + 2 * espacoTexto + tamanhoTexto * 2 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+    text("Tempo de recuperação: " + str(pessoas[mouseXGrid][mouseYGrid].tempoRecuperacao), 
+        posJanela.x + margem, posJanela.y + 3 * espacoTexto + tamanhoTexto * 3 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+    text("Pessoas infectadas: " + str(pessoas[mouseXGrid][mouseYGrid].pessoasInfectadas), 
+        posJanela.x + margem, posJanela.y + 4 * espacoTexto + tamanhoTexto * 4 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+    text("Tempo de ação: " + str(pessoas[mouseXGrid][mouseYGrid].tempoAcao), 
+        posJanela.x + margem, posJanela.y + 5 * espacoTexto + tamanhoTexto * 5 + margem, 
+        tamanhoJanela.x - margem * 2, tamanhoTexto);
+}
+
 void mouseReleased() {
     // Se o mouse está em cima de uma célula válida, adiciona
     // uma pessoa infectada ou suscetível nela.
@@ -308,23 +352,26 @@ void mouseReleased() {
 }
 
 void keyPressed() {
-    if(mouseXGrid >= 0 && mouseXGrid < tamanho && mouseXGrid >= 0 && mouseXGrid < tamanho) {
-        if(pessoas[mouseXGrid][mouseXGrid] == null) {
+    // Se o mouse está em cima de uma célula válida, adiciona
+    // uma pessoa infectada ou suscetível nela.
+    if(mouseXGrid >= 0 && mouseXGrid < tamanho && mouseYGrid >= 0 && mouseYGrid < tamanho) {
+        if(pessoas[mouseXGrid][mouseYGrid] == null) {
             Estado estado = null;
             switch(key) {
                 case '1':
                     estado = Estado.INFECTADO;
                 break;
-
+    
                 case '2':
                     estado = Estado.SUSCETIVEL;
                 break;
-
+    
                 case '3':
                     estado = Estado.IMUNE;
                 break;
             }
 
+            // Adiciona uma pessoa se a entrada for certa
             if(estado != null) {
                 pessoas[mouseXGrid][mouseYGrid] = new Pessoa(estado);
                 pessoas[mouseXGrid][mouseYGrid].posicaoTela = new PVector(mouseXGrid * tamanhoCelula, mouseYGrid * tamanhoCelula);
